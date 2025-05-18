@@ -15,7 +15,7 @@ class Logger:
     def __initialize(self):
         format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         # initialize rotating file handler
-        rotating_file_handler = RotatingFileHandler(f'logs/{self.module}.log', maxBytes=2000, backupCount=3) # logs to a file
+        rotating_file_handler = RotatingFileHandler(f'../../logs/{self.module}.log', maxBytes=2000, backupCount=3) # logs to a file
         rotating_file_handler.setFormatter(format)
         rotating_file_handler.setLevel(self.level)
         # initialize console handler

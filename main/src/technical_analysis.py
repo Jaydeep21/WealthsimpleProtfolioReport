@@ -3,8 +3,6 @@ import numpy as np
 from datetime import datetime, timedelta
 import yfinance as yf
 import pandas as pd
-from ta.trend import SMAIndicator, MACD
-from ta.volatility import BollingerBands
 from technical_indicators import TechnicalIndicators
 import settings
 from research_analysis import ResearchAnalysis
@@ -138,10 +136,11 @@ class TechnicalAnalysis:
                 'price': current_price,
                 'sma_trend': sma_trend
             }
-            
+            technical_indicators = TechnicalIndicators()
             # RSI (Relative Strength Index)
-            # rsi = RSIIndicator(close=stock_data['Close'].iloc[-1], window=14)
-            rsi_value = TechnicalIndicators.calculate_rsi(stock_data['Close'], window=14)
+            rsi_value = technical_indicators.calculate_rsi(stock_data['Close'], window=14)
+            if rsi_value is not None:
+                rsi_value = rsi_value[0]
             rsi_signal = 'neutral'
             if rsi_value is not None:
                 if rsi_value < 30:
@@ -155,10 +154,10 @@ class TechnicalAnalysis:
             }
             
             # MACD (Moving Average Convergence Divergence)
-            macd = MACD(close=stock_data['Close'])
-            macd_line = macd.macd().iloc[-1] if not macd.macd().empty else None
-            signal_line = macd.macd_signal().iloc[-1] if not macd.macd_signal().empty else None
-            histogram = macd.macd_diff().iloc[-1] if not macd.macd_diff().empty else None
+            macd = technical_indicators.calculate_macd(stock_data)
+            macd_line = macd['MACD'].iloc[-1] if not macd['MACD'].empty else None
+            signal_line = macd['Signal'].iloc[-1] if not macd['Signal'].empty else None
+            histogram = macd['Histogram'].iloc[-1] if not macd['Histogram'].empty else None
             
             macd_signal = 'neutral'
             if macd_line is not None and signal_line is not None:
@@ -175,11 +174,16 @@ class TechnicalAnalysis:
             }
             
             # Bollinger Bands
-            bb = BollingerBands(close=stock_data['Close'])
-            bb_upper = bb.bollinger_hband().iloc[-1] if not bb.bollinger_hband().empty else None
-            bb_middle = bb.bollinger_mavg().iloc[-1] if not bb.bollinger_mavg().empty else None
-            bb_lower = bb.bollinger_lband().iloc[-1] if not bb.bollinger_lband().empty else None
-            bb_width = bb.bollinger_wband().iloc[-1] if not bb.bollinger_wband().empty else None
+            # Calculate the 20-period Simple Moving Average (SMA)
+            stock_data['SMA'] = stock_data['Close'].rolling(window=20).mean()
+            # Calculate the 20-period Standard Deviation (SD)
+            stock_data['SD'] = stock_data['Close'].rolling(window=20).std()
+            # Calculate the Upper Bollinger Band (UB) and Lower Bollinger Band (LB)
+            stock_data['UB'] = stock_data['SMA'] + 2 * stock_data['SD']
+            stock_data['LB'] = stock_data['SMA'] - 2 * stock_data['SD']
+            bb_upper = stock_data['UB'].iloc[-1] if not stock_data['UB'].empty else None
+            bb_middle = stock_data['SMA'].iloc[-1] if not stock_data['SMA'].empty else None
+            bb_lower = stock_data['LB'].iloc[-1] if not stock_data['LB'].empty else None
             
             bb_signal = 'neutral'
             if current_price is not None and bb_upper is not None and bb_lower is not None:
@@ -192,14 +196,13 @@ class TechnicalAnalysis:
                 'upper': bb_upper,
                 'middle': bb_middle,
                 'lower': bb_lower,
-                'width': bb_width,
                 'signal': bb_signal
             }
             
             # Calculate historical performance
             if len(stock_data) > 1:
-                start_price = stock_data['Close'].iloc[0]
-                current_price = stock_data['Close'].iloc[-1]
+                start_price = stock_data['Close'].iloc[0][0]
+                current_price = stock_data['Close'].iloc[-1][0]
                 perf_pct = ((current_price - start_price) / start_price) * 100 if start_price != 0 else 0
                 
                 results['performance'] = {

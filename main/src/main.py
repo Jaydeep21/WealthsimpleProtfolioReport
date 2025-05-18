@@ -1,6 +1,7 @@
 from authentication import Authentication 
 from technical_analysis import TechnicalAnalysis    
 from report import ReportGenerator    
+
 def main():
     """Main function to run the portfolio tracker"""
     print("Wealthsimple Portfolio Tracker with Performance Analysis")

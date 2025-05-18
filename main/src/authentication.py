@@ -18,7 +18,7 @@ class Authentication:
         try:
             username = settings.USERNAME
             password = settings.PASSWORD
-            
+            print(username, password)
             if username == 'your_email@example.com' or password == 'your_password':
                 self.logger.error("Please update your config.ini file with valid credentials")
                 exit(1)

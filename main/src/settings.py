@@ -6,7 +6,7 @@ load_dotenv()
 # this method reads the .env file
 # and assigns the environment variables their values
 
-USERNAME = os.getenv("username", "")
+USERNAME = os.getenv("email", "abc@gmail.com")
 PASSWORD = os.getenv("password", "")
 API_KEY = os.getenv("api_key", "")
 LOOKBACK_PERIOD_DAYS = os.getenv("lookback_period_days","365")
